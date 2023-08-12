@@ -1,0 +1,8 @@
+torch
+matplotlib
+automan
+numpy
+ipython
+jupyter
+vtk==9.0.1
+mayavi==4.7.3
