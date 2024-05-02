@@ -3,6 +3,7 @@ import sys
 #from mayavi import mlab
 import numpy as np
 import torch
+torch.cuda.empty_cache()
 
 import torch.nn as nn
 
@@ -85,7 +86,7 @@ class Plotter2D(Plotter):
         return self.get_error(xn, yn, pn)
 
     def plot(self):
-        err, torque = self.plot_solution()#换涡流和返回与解析解的误差的，没有解析解返回0
+        err,torque = self.plot_solution()#换涡流和返回与解析解的误差的，没有解析解返回0
         self.plot_weights()#画径向基的
         # mlab.process_ui_events()
         # if sys.platform.startswith('linux'):
@@ -110,7 +111,7 @@ class Shift2D(nn.Module):
         self.dx = dx
         self.x = nn.Parameter(tensor(points[0]))#100
         self.y = nn.Parameter(tensor(points[1]))#100
-        fp = fixed_points
+        fp = fixed_points#边界上的点，300个
         self.xf = tensor(fp[0])#40
         self.yf = tensor(fp[1])#40
 
@@ -157,7 +158,7 @@ class SPINN2D(nn.Module):
 
     def __init__(self, pde, activation, fixed_h=False, use_pu=False):
         super().__init__()
-        self.loss_scale = torch.nn.Parameter(torch.tensor([-0.5]* 11))
+
         self.activation = activation
         self.use_pu = use_pu
         self.layer1 = Shift2D(pde.nodes(), pde.fixed_nodes(),#nodes 100内部 fixed_nodes 40边界
@@ -177,7 +178,6 @@ class SPINN2D(nn.Module):
             zsum = z.sum(axis=1).unsqueeze(1)
         else:
             zsum = 1.0
-        #z = torch.nn.functional.linear(z/zsum, self.layer2.weight.clone(), self.layer2.bias)
         z = self.layer2(z/zsum)#(250,3)
         return z.squeeze()
 

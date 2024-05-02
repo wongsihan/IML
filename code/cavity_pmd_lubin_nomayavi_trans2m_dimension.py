@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 class CavityPDE(RegularPDE):
     def __init__(self, n_nodes, ns, nb=None, nbs=None, sample_frac=1.0):#生成100+40个固定点和2500个采样点
         self.sample_frac = sample_frac
-        self.omega = 150 * 2 * np.pi / 60
+
         # Interior nodes 100个内部固定点的坐标
         #new method 一共三个区域,run函数定义数量
         #永磁体区域 10000
@@ -26,26 +26,26 @@ class CavityPDE(RegularPDE):
         rm = 0.045
         p = 5
         lengthX = alpha * rm * Pi / p
-
-        # 永磁体
-        self.thickness_mag = 0.010
+        thickness_mag = 0.010
         dxb2 = 1.00 / (1000*n)
-        self.fitness = 0
-        xl, xr = self.fitness, lengthX - self.fitness
-        yb, yt = self.fitness, self.thickness_mag - self.fitness
+        fitness = 0.0
+        xl, xr = fitness, lengthX - fitness
+        yb, yt = fitness, thickness_mag - fitness
         slx = slice(xl, xr, n * 1j)
         sly = slice(yb, yt, n * 1j)
         x1, y1 = np.mgrid[slx, sly]
 
-        # 气隙
-        self.thickness_air = 0.003
-        yb, yt = self.thickness_mag + self.fitness, self.thickness_mag + self.thickness_air - self.fitness
+        # 气隙 900
+        # thickness_air = 0.003
+        thickness_air = 0.005
+        yb, yt = thickness_mag + fitness, thickness_mag + thickness_air - fitness
         sly = slice(yb, yt, n * 1j * 0.3)
         x2, y2 = np.mgrid[slx, sly]
 
-        # 铜
-        self.thickness_copper = 0.005
-        yb, yt = self.thickness_mag + self.thickness_air + self.fitness, self.thickness_mag + self.thickness_air + self.thickness_copper - self.fitness
+        # 铜 2500
+        # thickness_copper = 0.005
+        thickness_copper = 0.008
+        yb, yt = thickness_mag + thickness_air + fitness, thickness_mag + thickness_air + thickness_copper - fitness
         sly = slice(yb, yt, n * 1j * 0.5)
         x3, y3 = np.mgrid[slx, sly]
 
@@ -54,6 +54,8 @@ class CavityPDE(RegularPDE):
         y = np.append(y1,y2)
         y = np.append(y,y3)
         self.i_nodes = (x.ravel(), y.ravel())
+
+
         # Fixed nodes 40个都在边界上
         nb = n if nb is None else nb
         self.nb = nb#10
@@ -62,37 +64,47 @@ class CavityPDE(RegularPDE):
         else:
             dxb2 = 1.0/(nb*1000)#0.1
             lengthX = alpha * rm * Pi / p
-            lengthY4 = self.thickness_mag + self.thickness_air +self.thickness_copper
-            _x = np.linspace(self.fitness, lengthX - self.fitness, nb)
+            # lengthY1 = 0
+            # lengthY2 = 10
+            # lengthY3 = 13
+            lengthY4 = thickness_mag + thickness_air +thickness_copper
+
+            _x = np.linspace(fitness, lengthX - fitness, nb)
             _o = np.ones_like(_x)
-            _l = np.linspace(self.fitness, lengthY4 - self.fitness, nb)
+            _l = np.linspace(fitness, lengthY4 - fitness, nb)
             x = np.hstack((_x, _x, _x, _x, _x*0.0, _o*lengthX))
-            y = np.hstack((_o*0.0, _o*self.thickness_mag, _o*(self.thickness_mag+self.thickness_air), _o*(self.thickness_mag+self.thickness_air+self.thickness_copper), _l, _l))
+            y = np.hstack((_o*0.0, _o*thickness_mag, _o*(thickness_mag+thickness_air), _o*(thickness_mag+thickness_air+thickness_copper), _l, _l))
             self.f_nodes = (x, y)#一个40个都在边界上
 
         # Interior samples 2500个内部的0.02-0.98的点
-        # 永磁体区域
+        # 永磁体区域 10000
         self.ns = ns = round(np.sqrt(ns) + 0.49)  # 15
         dxb2 = 1.00 / (1000*ns)#0.00000667
-        xl, xr = self.fitness, lengthX - self.fitness
-        yb, yt = self.fitness, self.thickness_mag - self.fitness
+        #xl, xr = dxb2, lengthX - dxb2#5e-5,0.0282
+        xl, xr = fitness, lengthX - fitness
+        yb, yt = fitness, thickness_mag - fitness
         slx = slice(xl, xr, ns * 1j)
         sly = slice(yb, yt, ns * 1j)
         x1, y1 = np.mgrid[slx, sly]
-
+        # slx_fake_1 = slice(0, lengthX, ns * 1j)
+        # sly_fake_1 = slice(0, thickness_mag, ns * 1j)
+        # x1_fake, y1_fake = np.mgrid[slx_fake_1, sly_fake_1]
+        #
+        # self.p_samples_fake_x1 = x1_fake
+        # self.p_samples_fake_y1 = y1_fake
         self.label = len(x1[0]) * len(x1[:,0])
         self.p_samples_x1 = x1
         self.p_samples_y1 = y1
 
 
-        yb2, yt2 = self.thickness_mag + self.fitness, self.thickness_mag + self.thickness_air - self.fitness
+        yb2, yt2 = thickness_mag + fitness, thickness_mag + thickness_air - fitness
         sly = slice(yb2, yt2, ns * 1j * 0.3)
         x2, y2 = np.mgrid[slx, sly]
         self.label2 = len(x2[0]) * len(y2[:,0])
         self.p_samples_x2 = x2
         self.p_samples_y2 = y2
 
-        yb3, yt3 = self.thickness_mag + self.thickness_air + self.fitness, self.thickness_mag + self.thickness_air + self.thickness_copper - self.fitness
+        yb3, yt3 = thickness_mag + thickness_air + fitness, thickness_mag + thickness_air + thickness_copper - fitness
         sly = slice(yb3, yt3, ns * 1j)
         x3, y3 = np.mgrid[slx, sly]
         self.label3 = len(x3[0]) * len(y3[:,0])
@@ -115,16 +127,16 @@ class CavityPDE(RegularPDE):
         self.nbs = nbs#50
 
         dxb2 = 1.0 / (nbs*1000)  # 0.1
-        _x = np.linspace(self.fitness, lengthX - self.fitness, nbs)
+        _x = np.linspace(fitness, lengthX - fitness, nbs)
         _o = np.ones_like(_x)
-        _l = np.linspace(self.fitness, lengthY4 - self.fitness, nbs)
+        _l = np.linspace(fitness, lengthY4 - fitness, nbs)
 
         def tg(x):
             return tensor(x, requires_grad=True)
 
         self.one = one = (tg(_x), tg(_o * lengthY4))
-        self.two = two = (tg(_x), tg(_o * (self.thickness_mag + self.thickness_air)))
-        self.three = three = (tg(_x), tg(_o * self.thickness_mag))
+        self.two = two = (tg(_x), tg(_o * (thickness_mag + thickness_air)))
+        self.three = three = (tg(_x), tg(_o * thickness_mag))
         self.four = four = (tg(_x), tg(_o * 0.00))
         self.five = five = (tg(_o*0.00), tg(_l))
         self.six = six = (tg(_o*lengthX), tg(_l))
@@ -144,13 +156,13 @@ class CavityPDE(RegularPDE):
         rm = 0.045
         p = 5
         sigma = 57000000
-        omega = self.omega
+        omega = 150 * 2 * Pi / 60
         L = 0.03
         K = ((4 * br * rm) / (Pi * p)) * (torch.sin(tensor(alpha * Pi / 2)))
         beta = p / rm
-        b = self.thickness_mag
-        c = self.thickness_air
-        d = self.thickness_copper
+        b = 0.01
+        c = 0.003
+        d = 0.005
         exact_eddy_current = -sigma * omega * rm * Ady  # [46,46]
         J2 = exact_eddy_current * exact_eddy_current
         dy = y
@@ -174,7 +186,6 @@ class CavityPDE(RegularPDE):
         return False
 
     def interior_loss(self, nn):
-        weight = 10
         (xs, ys),x1,x2,x3,y1,y2,y3 = self.interior()  # 250 250
         U = nn(xs, ys)  # (250,3) U就是A1 和 A2
         Ady = U[:, 0]  # A1
@@ -205,36 +216,36 @@ class CavityPDE(RegularPDE):
         A1dz2 = A1dz2[:self.label]
         A2dy2 = A2dy2[self.label:]
         A2dz2 = A2dz2[self.label:]
-        loss_one =(((A1dy2 + A1dz2 + (u0 * mzy)) ** 2)*weight).sum()
-        loss_two = (((A2dy2 + A2dz2) ** 2)*weight).sum()
+        loss_one =(((A1dy2 + A1dz2 + (u0 * mzy)) ** 2)*10).sum()
+        loss_two = (((A2dy2 + A2dz2) ** 2)*10).sum()
 
-        # alpha = 1
-        # Pi = np.pi
-        # br = 1.25
-        # rm = 0.045
-        # p = 5
-        # sigma = 57000000
-        # omega = self.omega
-        # L = 0.03
-        # K = ((4 * br * rm) / (Pi * p)) * (torch.sin(tensor(alpha * Pi / 2)))
-        # beta = p / rm
-        # b = self.thickness_mag
-        # c = self.thickness_air
-        # d = self.thickness_copper
-        # x1 = tensor(x1, requires_grad=True)
-        # y1 = tensor(y1, requires_grad=True)
-        # x3 = tensor(x3, requires_grad=True)
-        # y3 = tensor(y3, requires_grad=True)
-        # # exact_A2 = K * ((torch.sinh(tensor(beta * 0.1, requires_grad=True)) * torch.cosh(beta * (yn_copper - 0.18)))/(torch.sinh(tensor(beta*0.18, requires_grad=True)))) *(torch.cos(beta * xn_copper))
-        # exact_A2 = K * (torch.sinh(tensor(beta * b)) * torch.cosh(beta * (y3 - (b + c + d))) * torch.cos(
-        #     beta * x3))
-        # exact_A2 = exact_A2 / torch.sinh(tensor(beta * (b + c + d)))
-        # exact_A1 = 1-((torch.sinh(tensor(beta * (c+d))) * torch.cosh(beta*y1))/torch.sinh(tensor(beta*(b+c+d))))
-        # exact_A1 = K * exact_A1 * torch.cos(beta*x1)
-        # # zhuanju1
-        # exact_A1dy, exact_A1dz = self._compute_gradient(exact_A1, x1, y1)
-        # exact_A2dy, exact_A2dz = self._compute_gradient(exact_A2, x3, y3)
-##################
+        alpha = 1
+        Pi = np.pi
+        br = 1.25
+        rm = 0.045
+        p = 5
+        sigma = 57000000
+        omega = 150 * 2 * Pi / 60
+        L = 0.03
+        K = ((4 * br * rm) / (Pi * p)) * (torch.sin(tensor(alpha * Pi / 2)))
+        beta = p / rm
+        b = 0.01
+        c = 0.003
+        d = 0.005
+        x1 = tensor(x1, requires_grad=True)
+        y1 = tensor(y1, requires_grad=True)
+        x3 = tensor(x3, requires_grad=True)
+        y3 = tensor(y3, requires_grad=True)
+        # exact_A2 = K * ((torch.sinh(tensor(beta * 0.1, requires_grad=True)) * torch.cosh(beta * (yn_copper - 0.18)))/(torch.sinh(tensor(beta*0.18, requires_grad=True)))) *(torch.cos(beta * xn_copper))
+        exact_A2 = K * (torch.sinh(tensor(beta * b)) * torch.cosh(beta * (y3 - (b + c + d))) * torch.cos(
+            beta * x3))
+        exact_A2 = exact_A2 / torch.sinh(tensor(beta * (b + c + d)))
+        exact_A1 = 1-((torch.sinh(tensor(beta * (c+d))) * torch.cosh(beta*y1))/torch.sinh(tensor(beta*(b+c+d))))
+        exact_A1 = K * exact_A1 * torch.cos(beta*x1)
+        # zhuanju1
+        exact_A1dy, exact_A1dz = self._compute_gradient(exact_A1, x1, y1)
+        exact_A2dy, exact_A2dz = self._compute_gradient(exact_A2, x3, y3)
+
         #torque = self.cal_torque(A2dy,x3,y3)
         # exact_eddy_current = -sigma * omega * rm * A2dy  # [46,46]
         # J2 = exact_eddy_current * exact_eddy_current
@@ -243,147 +254,20 @@ class CavityPDE(RegularPDE):
         # torque = integrate.simps(J2.T.cpu().detach().numpy(), dy.T.cpu().detach().numpy(), axis=0)
         # torque = (integrate.simps(torque, dx[:,0].cpu().detach().numpy()) * L * 10) / (sigma * omega)
         #print("loss里的转矩是：",torque)
- ########################
+        d1 = exact_A2dy.shape[0]
+        d2 = exact_A2dy.shape[1]
+        exact_A2dy = exact_A2dy.reshape(d1*d2)
 
-        # d1 = exact_A2dy.shape[0]
-        # d2 = exact_A2dy.shape[1]
-        # exact_A2dy = exact_A2dy.reshape(d1*d2)
-        #
-        # d3 = exact_A1dy.shape[0]
-        # d4 = exact_A1dy.shape[1]
-        # exact_A1dy = exact_A1dy.reshape(d1 * d2)
-        # loss_three =(((exact_A2dy - Ady_copper)**2)*500).sum()#copper
-        # loss_four = (((exact_A1dy - A1dy)**2)*500).sum()#magnet
+        d3 = exact_A1dy.shape[0]
+        d4 = exact_A1dy.shape[1]
+        exact_A1dy = exact_A1dy.reshape(d1 * d2)
+        loss_three =(((exact_A2dy - Ady_copper)**2)*500).sum()#copper
+        loss_four = (((exact_A1dy - A1dy)**2)*500).sum()#magnet
 
-        return loss_one + loss_two # [1]
+        return loss_one + loss_two + loss_three + loss_four # [1]
 
 
 
-    def conform_exact(self,Ady_pre,Adz_pre,y,z,pattern,boundary):
-        weight = 1000
-        alpha = 1
-        Pi = np.pi
-        br = 1.25
-        rm = 0.045
-        p = 5
-        sigma = 57000000
-        omega = self.omega
-        L = 0.03
-        K = ((4 * br * rm) / (Pi * p)) * (torch.sin(tensor(alpha * Pi / 2)))
-        beta = p / rm
-        b = 0.01
-        c = 0.003
-        d = 0.005
-        n_one = len(self.one[0])
-        n_two = len(self.two[0]) + n_one
-        n_three = len(self.three[0]) + n_two
-        n_four = len(self.four[0]) + n_three
-        n_five = len(self.five[0]) + n_four
-        n_six = len(self.six[0]) + n_five
-        y = tensor(y, requires_grad=True)
-        z = tensor(z, requires_grad=True)
-        if pattern == 1:
-            exact_A1 = 1 - ((torch.sinh(tensor(beta * (c + d))) * torch.cosh(beta * z)) / torch.sinh(
-                tensor(beta * (b + c + d))))
-            exact_A1 = K * exact_A1 * torch.cos(beta * y)
-            exact_Ady, exact_Adz = self._compute_gradient(exact_A1, y, z)
-
-        elif pattern == 2:
-            exact_A2 = K * (torch.sinh(tensor(beta * b)) * torch.cosh(beta * (z - (b + c + d))) * torch.cos(
-                beta * y))
-            exact_A2 = exact_A2 / torch.sinh(tensor(beta * (b + c + d)))
-            exact_Ady, exact_Adz = self._compute_gradient(exact_A2, y, z)
-
-        # d1 = exact_A2dy.shape[0]
-        # d2 = exact_A2dy.shape[1]
-        # exact_A2dy = exact_A2dy.reshape(d1 * d2)
-        # d3 = exact_A1dy.shape[0]
-        # d4 = exact_A1dy.shape[1]
-        # exact_A1dy = exact_A1dy.reshape(d1 * d2)
-        loss_one = loss_two = 0
-        if boundary == 1:
-            exact_Ady = exact_Ady[:n_one]
-            exact_Adz = exact_Adz[:n_one]
-
-            loss_one = (((exact_Ady - Ady_pre) ** 2) * weight).sum()  # copper
-            loss_two = (((exact_Adz - Adz_pre) ** 2) * weight).sum()  # magnet
-        elif boundary == 2:
-            exact_Ady = exact_Ady[n_one:n_two]
-            exact_Adz = exact_Adz[n_one:n_two]
-
-            loss_one = (((exact_Ady - Ady_pre) ** 2) * weight).sum()  # copper
-            loss_two = (((exact_Adz - Adz_pre) ** 2) * weight).sum()
-        elif boundary == 3:
-            exact_Ady = exact_Ady[n_two:n_three]
-            exact_Adz = exact_Adz[n_two:n_three]
-
-            loss_one = (((exact_Ady - Ady_pre) ** 2) * weight).sum()  # copper
-            loss_two = (((exact_Adz - Adz_pre) ** 2) * weight).sum()
-        elif boundary == 4:
-            exact_Ady = exact_Ady[n_three:n_four]
-            exact_Adz = exact_Adz[n_three:n_four]
-
-            loss_one = (((exact_Ady - Ady_pre) ** 2) * weight).sum()  # copper
-            loss_two = (((exact_Adz - Adz_pre) ** 2) * weight).sum()
-        return loss_one + loss_two
-
-    def conform_exact_boundary(self, Ady_pre, Adz_pre, y, z, boundary):
-        weight = 1000
-        alpha = 1
-        Pi = np.pi
-        br = 1.25
-        rm = 0.045
-        p = 5
-        sigma = 57000000
-        omega = self.omega
-        L = 0.03
-        K = ((4 * br * rm) / (Pi * p)) * (torch.sin(tensor(alpha * Pi / 2)))
-        beta = p / rm
-        b = 0.01
-        c = 0.003
-        d = 0.005
-        n_one = len(self.one[0])
-        n_two = len(self.two[0]) + n_one
-        n_three = len(self.three[0]) + n_two
-        n_four = len(self.four[0]) + n_three
-        n_five = len(self.five[0]) + n_four
-        n_six = len(self.six[0]) + n_five
-        y = tensor(y, requires_grad=True)
-        z = tensor(z, requires_grad=True)
-
-        exact_A1 = 1 - ((torch.sinh(tensor(beta * (c + d))) * torch.cosh(beta * z)) / torch.sinh(
-            tensor(beta * (b + c + d))))
-        exact_A1 = K * exact_A1 * torch.cos(beta * y)
-        exact_A1dy, exact_A1dz = self._compute_gradient(exact_A1, y, z)
-
-
-        exact_A2 = K * (torch.sinh(tensor(beta * b)) * torch.cosh(beta * (z - (b + c + d))) * torch.cos(
-            beta * y))
-        exact_A2 = exact_A2 / torch.sinh(tensor(beta * (b + c + d)))
-        exact_A2dy, exact_A2dz = self._compute_gradient(exact_A2, y, z)
-
-        loss_one = loss_two = 0
-        if boundary == 5:
-            exact_A1dy = exact_A1dy[n_four:n_five]
-            exact_A2dy = exact_A2dy[n_four:n_five]
-            exact_A1dz = exact_A1dz[n_four:n_five]
-            exact_A2dz = exact_A2dz[n_four:n_five]
-
-            loss_one = (((exact_A1dy[:6] - Ady_pre[:6]) ** 2) * weight).sum()  # copper
-            loss_two = (((exact_A1dz[:6] - Adz_pre[:6]) ** 2) * weight).sum()  # magnet
-            #loss_one += (((exact_A2dy[6:] - Ady_pre[6:]) ** 2) * weight).sum()
-            #loss_two += (((exact_A2dz[6:] - Adz_pre[6:]) ** 2) * weight).sum()
-        elif boundary == 6:
-            exact_A1dy = exact_A1dy[n_five:n_six]
-            exact_A2dy = exact_A2dy[n_five:n_six]
-            exact_A1dz = exact_A1dz[n_five:n_six]
-            exact_A2dz = exact_A2dz[n_five:n_six]
-            loss_one = (((exact_A1dy[:6] - Ady_pre[:6]) ** 2) * weight).sum()  # copper
-            loss_two = (((exact_A1dz[:6] - Adz_pre[:6]) ** 2) * weight).sum()  # magnet
-            #loss_one += (((exact_A2dy[6:] - Ady_pre[6:]) ** 2) * weight).sum()
-            #loss_two += (((exact_A2dz[6:] - Adz_pre[6:]) ** 2) * weight).sum()
-
-        return loss_one + loss_two
 
     def boundary_loss(self, nn):
         bc_weight = self.ns * 20  # 1000
@@ -413,11 +297,11 @@ class CavityPDE(RegularPDE):
         Ady_three = Ady[n_two:n_three]
         Adz_three = Adz[n_two:n_three]
         Ady_four = Ady[n_three:n_four]
-        Adz_four = Adz[n_three:n_four]
-        Ady_five = Ady[n_four:n_five]
-        Adz_five = Adz[n_four:n_five]
-        Ady_six = Ady[n_five:n_six]
-        Adz_six = Adz[n_five:n_six]
+        Adz_four = Adz[n_two:n_four]
+        Ady_five = Ady[n_two:n_five]
+        Adz_five = Adz[n_two:n_five]
+        Ady_six = Ady[n_two:n_six]
+        Adz_six = Adz[n_two:n_six]
 
         # 1 2边遵循A2
         A1dy2, A1dydz = self._compute_gradient(Ady_one, xb, yb)
@@ -428,8 +312,6 @@ class CavityPDE(RegularPDE):
         A1dz2 = A1dz2[:n_one]
         A2dy2 = A2dy2[n_one:n_two]
         A2dz2 = A2dz2[n_one:n_two]
-        # bc_loss = self.conform_exact(Ady_one, Adz_one, xb, yb, 2, 1)
-        # bc_loss += self.conform_exact(Ady_two, Adz_two, xb, yb, 2, 2)
         bc_loss = ((A1dy2 + A1dz2) ** 2).sum()
         bc_loss += ((A2dy2 + A2dz2) ** 2).sum()
 
@@ -438,13 +320,10 @@ class CavityPDE(RegularPDE):
         A3dzdy, A3dz2 = self._compute_gradient(Adz_three, xb, yb)
         A3dy2 = A3dy2[n_two:n_three]
         A3dz2 = A3dz2[n_two:n_three]
-
+        bc_loss = (((A3dy2 + A3dz2) ** 2)*bc_weight).sum()
         xbA3 = xb[n_two:n_three]
         mzy = (4 * Br / Pi * u0) * (torch.sin(alpha * Pi / 2)) * beta * (torch.cos(beta * xbA3))
-        bc_loss += self.conform_exact(Ady_three, Adz_three, xb, yb, 1, 3)
-        bc_loss += self.conform_exact(Ady_three, Adz_three, xb, yb, 2, 3)
         bc_loss += (((A3dy2 + A3dz2 + u0 * mzy) ** 2)*bc_weight).sum()
-        bc_loss += ((A3dy2 + A3dz2) ** 2).sum()
 
         # 4边遵循 A1
         A4dy2, A4dydz = self._compute_gradient(Ady_four, xb, yb)
@@ -453,7 +332,6 @@ class CavityPDE(RegularPDE):
         A4dy2 = A4dy2[n_three:n_four]
         xbA4 = xb[n_three:n_four]
         mzy = (4 * Br / Pi * u0) * (torch.sin(alpha * Pi / 2)) * beta * (torch.cos(beta * xbA4))
-        bc_loss += self.conform_exact(Ady_four, Adz_four, xb, yb, 1, 4)
         bc_loss += ((A4dy2 + A4dz2 + u0 * mzy) ** 2).sum()
 
         # 5 6边赋常数
@@ -461,30 +339,27 @@ class CavityPDE(RegularPDE):
         # Adz_five = Adz_five * 0
         # Ady_six = Ady_six * 0
         # Adz_six = Adz_six * 0
-        bc_loss += self.conform_exact_boundary(Ady_five, Adz_five, xb, yb, 5)
-        bc_loss += self.conform_exact_boundary(Ady_six, Adz_six, xb, yb, 6)
 
         return bc_loss
 
     def plot_points(self):
         n = min(self.ns * 2, 200)#30
         ns = round(np.sqrt(self.ns) + 0.49)#5
-        #dxb2 = 1.00 / (1000 * ns)#0.0002
+        dxb2 = 1.00 / (1000 * ns)#0.0002
         Pi = np.pi
         alpha = 1
         rm = 0.045
         p = 5
         length = alpha * rm * Pi / p# ns 50 n 100
-        thickness_sum = self.thickness_air + self.thickness_mag + self.thickness_copper
-        thickness_mag_air = self.thickness_air + self.thickness_mag
-        x, y = np.mgrid[self.fitness:length-self.fitness:n * 1j, self.fitness:thickness_sum-self.fitness:n * 1j]
+        thickness_sum = 0.01 + 0.003 + 0.005
+        thickness_mag_air = 0.01 + 0.003
+        x, y = np.mgrid[dxb2:length-dxb2:n * 1j, dxb2:thickness_sum-dxb2:n * 1j]
         x = x
         y = y
         x_copper, y_copper = np.mgrid[0:length:n * 1j, thickness_mag_air:thickness_sum:n * 1j]
-        #x_copper, y_copper = np.mgrid[self.fitness:length-self.fitness:n * 1j, thickness_mag_air:thickness_sum:n * 1j]
         x_copper = x_copper
         y_copper= y_copper
-        return x, y, x_copper, y_copper,self.omega,self.thickness_mag,self.thickness_air,self.thickness_copper#(100,100) (100,100)在0-1,0-1这个区间，生成了10000个坐标，间隔0.01
+        return x, y, x_copper, y_copper#(100,100) (100,100)在0-1,0-1这个区间，生成了10000个坐标，间隔0.01
 
 
 class CavityPlotter(Plotter2D):
@@ -502,13 +377,13 @@ class CavityPlotter(Plotter2D):
         rm = 0.045
         p = 5
         sigma = 57000000
-        omega = self.omega
+        omega = 150 * 2 * Pi / 60
         L = 0.03
         K = ((4 * br * rm) / (Pi * p)) * (torch.sin(tensor(alpha * Pi / 2)))
         beta = p / rm
-        b = self.thickness_mag
-        c = self.thickness_air
-        d = self.thickness_copper
+        b = 0.01
+        c = 0.003
+        d = 0.005
         exact_eddy_current = -sigma * omega * rm * Ady  # [46,46]
         J2 = exact_eddy_current * exact_eddy_current
         dy = y
@@ -518,7 +393,7 @@ class CavityPlotter(Plotter2D):
 
         return torque
     def get_plot_data(self):
-        x, y, x_copper, y_copper,self.omega,self.thickness_mag,self.thickness_air,self.thickness_copper = self.pde.plot_points()
+        x, y, x_copper, y_copper = self.pde.plot_points()
         xt, yt = tensor(x.ravel()), tensor(y.ravel())  # 10000 10000
         x_copper_t, y_copper_t = tensor(x_copper.ravel()), tensor(y_copper.ravel())
         pn = self.nn(xt, yt).detach().cpu().numpy()  # 10000,3
@@ -561,13 +436,13 @@ class CavityPlotter(Plotter2D):
         rm = 0.045
         p = 5
         sigma = 57000000
-        omega = self.omega
+        omega = 150 * 2 * Pi/60
         L = 0.03
         K = ((4*br*rm)/(Pi*p)) * (torch.sin(tensor(alpha * Pi/2)))
         beta = p / rm
-        b = self.thickness_mag
-        c = self.thickness_air
-        d = self.thickness_copper
+        b = 0.01
+        c = 0.003
+        d = 0.005
         # exact_A2 = K * ((torch.sinh(tensor(beta * 0.1, requires_grad=True)) * torch.cosh(beta * (yn_copper - 0.18)))/(torch.sinh(tensor(beta*0.18, requires_grad=True)))) *(torch.cos(beta * xn_copper))
         exact_A2 = K * (torch.sinh(tensor(beta * b)) * torch.cosh(beta * (yn_copper - (b+c+d))) * torch.cos(beta * xn_copper))
         exact_A2 = exact_A2 / torch.sinh(tensor(beta * (b+c+d)))
@@ -594,20 +469,20 @@ class CavityPlotter(Plotter2D):
         torque = (integrate.simps(torque, dx.cpu().detach().numpy()) * L * 10) / (sigma * omega)
         pde = self.pde
         #画图
-        plt.figure(figsize=(20,4))
+        plt.figure(figsize=(10,18))
         eddy_current = tensor(eddy_current, requires_grad=True)
-        plt.subplot(1,2,1)
+        plt.subplot(2,1,1)
         plt.contour(xn_copper.cpu().detach().numpy(), yn_copper.cpu().detach().numpy(), eddy_current[:, :].cpu().detach().numpy(), 10000, cmap='jet', zorder=1)
         plt.colorbar()
         plt.xticks([])
         plt.yticks([])
-       # plt.title("eddy current")
+        #plt.title("eddy current")
 
-        Bz = -Ady_copper
-        Bx = -Adz_copper
-        plt.subplot(1, 2, 2)
+        Bz = -Ady_copper#20,20
+        Bx = -Adz_copper#20,20
+        plt.subplot(2, 1, 2)
         M = np.hypot(Bx,Bz)
-        plt.quiver(-xn_copper.cpu().detach().numpy(), yn_copper.cpu().detach().numpy(),Bx,Bz,M,width=0.005,
+        plt.quiver(xn_copper.cpu().detach().numpy(), yn_copper.cpu().detach().numpy(),Bx,Bz,M,width=0.005,
                scale=10,cmap='jet')
         #
         # plt.contour(xn_copper.cpu().detach().numpy(), yn_copper.cpu().detach().numpy(),
@@ -615,7 +490,7 @@ class CavityPlotter(Plotter2D):
         plt.colorbar()
         plt.xticks([])
         plt.yticks([])
-       # plt.title("vector B")
+        #plt.title("vector B")
         plt.show()
         #exact_torque = self.cal_torque(A2dy, xn_copper ,yn_copper)
         #print("Plot里的转矩是 :", exact_torque)

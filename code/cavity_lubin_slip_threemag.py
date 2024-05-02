@@ -4,12 +4,13 @@ import numpy as np
 import torch
 import matplotlib
 import matplotlib.pyplot as plt
+torch.cuda.empty_cache()
 
 import torch.autograd as ag
 import time
 import sympy as sp
 from scipy import integrate
-from common_iml import tensor
+from common_nomayavi import tensor
 from spinn2d_nomayavi import Plotter2D, App2D, SPINN2D
 from pde2d_base_nomayavi import RegularPDE
 
@@ -233,8 +234,6 @@ class CavityPDE(RegularPDE):
         A2dz2 = A2dz2[self.label:]
         loss_one = (((A1dy2 + A1dz2 + (u0 * mzy_num)) ** 2)*weight).sum()
         loss_two = (((A2dy2 + A2dz2) ** 2)*weight).sum()
-
-
 #########
 
 #         alpha = 1
@@ -580,8 +579,8 @@ class CavityPlotter(Plotter2D):
         x, y, x_copper, y_copper,self.omega,self.thickness_mag,self.thickness_air,self.thickness_copper = self.pde.plot_points()
         xt, yt = tensor(x.ravel()), tensor(y.ravel())  # 10000 10000
         x_copper_t, y_copper_t = tensor(x_copper.ravel()), tensor(y_copper.ravel())
-        pn = self.nn(xt, yt).detach().cpu().numpy()  # 10000,3
-        pn_copper = self.nn(x_copper_t, y_copper_t).detach().cpu().numpy()
+        pn = self.nn(xt, yt).detach().cpu().numpy()  # 400,2
+        pn_copper = self.nn(x_copper_t, y_copper_t).detach().cpu().numpy()#400,2
         pn.shape = x.shape + (2,)  # 100，100，3
         pn_copper.shape = x_copper.shape + (2,)  # 100，100，3
         return x, y, pn, pn_copper, x_copper, y_copper
@@ -609,6 +608,7 @@ class CavityPlotter(Plotter2D):
         #     self.plt2.mlab_source.trait_set(x=x, y=y, scalars=h)
 
     def plot_solution(self):
+
         xn, yn, pn, pn_copper, xn_copper, yn_copper = self.get_plot_data()  # 前两者合并就是所有坐标   第三项就是每个点对应的uvp三个值(100,100) (100,100) (100,100,3)
         Ady, Adz = pn[..., 0], pn[..., 1]
         Ady_copper, Adz_copper = pn_copper[..., 0], pn_copper[..., 1]

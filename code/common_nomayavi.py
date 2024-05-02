@@ -3,7 +3,6 @@ import time
 
 import numpy as np
 import torch
-import torch.nn as nn
 torch.cuda.empty_cache()
 
 import torch.optim as optim
@@ -86,12 +85,10 @@ class PDE:
         '''Total loss is computed by default as
            (interior loss + boundary loss)
         '''
-        #tasks_relative_loss = torch.zeros(11)
-        #loss_int, tasks_relative_loss = self.interior_loss(nn)#20mb 采样点*frac
-        loss_int, loss_one, loss_two = self.interior_loss(nn)
-        loss_bdy, loss_three,loss_four, loss_five,loss_six,loss_seven,loss_eight,loss_nine,loss_ten,loss_eleven = self.boundary_loss(nn)#14mb
+        loss_int = self.interior_loss(nn)#250 采样点*frac
+        loss_bdy = self.boundary_loss(nn)#200
         loss = loss_int + loss_bdy
-        return loss, loss_one, loss_two, loss_three,loss_four, loss_five,loss_six,loss_seven,loss_eight,loss_nine,loss_ten,loss_eleven
+        return loss
 
     def _compute_derivatives(self, u, x):
         raise NotImplementedError()
@@ -241,42 +238,17 @@ class Optimizer:
         self.out_dir = out_dir
         self.opt = None
         self.loss_for_tolerance = False
-        #self.loss_scale = torch.nn.Parameter(torch.tensor([-0.5] * 11))
 
     def use_loss_for_tolerance(self):
         self.loss_for_tolerance = True
 
     def closure(self):#19个点的
-        #with torch.autograd.set_detect_anomaly(True):
         opt = self.opt
         opt.zero_grad()
-        if torch.cuda.is_available():
-            # 设置默认设备为CUDA设备
-            device = torch.device("cuda")
-        else:
-            # 如果CUDA不可用，则使用CPU设备
-            device = torch.device("cpu")
-        tmp = torch.tensor([-0.5] * 11).to(device)
-        loss, loss_one, loss_two,loss_three,loss_four, loss_five,loss_six,loss_seven,loss_eight,loss_nine,loss_ten,loss_eleven = self.pde.loss(self.nn)
-        loss_re = [loss_one, loss_two,loss_three,loss_four, loss_five,loss_six,loss_seven,loss_eight,loss_nine,loss_ten,loss_eleven]
-        loss_re_3 = 0
-        for i, task in enumerate(loss_re):
-            loss_re_2 = (task / (2 * self.nn.loss_scale[i].exp()) + self.nn.loss_scale[i] / 2)
-            loss_re_3 = loss_re_3 + loss_re_2
-
-        # print("opt.param_groups[0]['params']]")
-        # print([x.grad for x in opt.param_groups[0]['params']])
-        # print("--------------------------------")
-        loss_re_3.backward(retain_graph=True)
-        # print("after opt.param_groups[0]['params']]")
-        print([x.grad for x in opt.param_groups[0]['params']])
-        # print("--------------------------------")
-        self.loss.append(loss_re_3.item())
-        return loss_re_3
-
-        # loss.backward(retain_graph=True)
-        # self.loss.append(loss.item())
-        # return loss
+        loss = self.pde.loss(self.nn)
+        loss.backward(retain_graph=True)
+        self.loss.append(loss.item())
+        return loss
 
     def solve(self):
         plotter = self.plotter
@@ -295,7 +267,7 @@ class Optimizer:
         err = 1.0
         #torque = 0
         for i in range(1, n_train+1):
-            loss = opt.step(self.closure)
+            loss = opt.step(self.closure)#19个点的
             if err < self.tol:
                 iterations_done = True
             if i % n_skip == 0 or i == n_train or iterations_done:
