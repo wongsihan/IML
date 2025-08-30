@@ -1,6 +1,16 @@
 # Physics-Informed Sparse Neural Network for Permanent Magnet Eddy Current Device Modeling and Analysis
-- You can get the results in the paper by running cavity_lubin_slip.py.
-
-- If you find PISNN useful in your research, please cite the following entry:
   
-D. Wang, S. Wang, D. Kong, J. Wang, W. Li and M. Pecht, "Physics-Informed Sparse Neural Network for Permanent Magnet Eddy Current Device Modeling and Analysis," in IEEE Magnetics Letters, vol. 14, pp. 1-5, 2023, Art no. 2100105, doi: 10.1109/LMAG.2023.3288388.
+Official implementation of our paper: “Cross-Level Fusion for Rotating Machinery Fault Diagnosis under Compound Variable Working Conditions.”
+Run cavity_lubin_slip.py to reproduce the results reported in the paper.
+Paper: [https://ieeexplore.ieee.org/document/10159495]
+
+Citation: [@article{wang2023physics,
+            title={Physics-informed sparse neural network for permanent magnet eddy current device modeling and analysis},
+            author={Wang, Dazhi and Wang, Sihan and Kong, Deshan and Wang, Jiaxing and Li, Wenhui and Pecht, Michael},
+            journal={IEEE Magnetics Letters},
+            volume={14},
+            pages={1--5},
+            year={2023},
+            publisher={IEEE}
+          }]
+
