@@ -3,7 +3,8 @@
 Official implementation of our paper: “Cross-Level Fusion for Rotating Machinery Fault Diagnosis under Compound Variable Working Conditions.”
 Paper: [https://ieeexplore.ieee.org/document/10159495]
 
-##Reproducing results
+## Reproducing results
+
 Run cavity_lubin_slip.py to reproduce the results reported in the paper.
 
 Citation: [@article{wang2023physics,
