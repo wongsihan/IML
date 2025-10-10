@@ -12,6 +12,8 @@ Official implementation of the paper:
 
 IEEE Magnetics Letters, vol. 14, pp. 1-5, 2023, Art no. 2100105, doi: 10.1109/LMAG.2023.3288388.
 
+The project has been restructured using a large model. If there are any issues with the code, please contact me.
+
 ## Abstract
 
 This paper presents a Physics-Informed Sparse Neural Network (SPINN) method for modeling and analyzing permanent magnet eddy current devices. The method combines the advantages of sparse neural networks with physics-informed constraints to solve electromagnetic field equations efficiently and accurately.
